@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2016",                            // Set the target ECMAScript version
+    "module": "commonjs",                          // Use CommonJS modules for Node.js
+    "outDir": "./dist",                            // Output compiled files to the 'dist' folder
+    "rootDir": "./src",                            // Input source files are in the 'src' folder
+    "strict": true,                                // Enable strict type-checking options
+    "esModuleInterop": true,                       // Allows for compatibility with CommonJS modules
+    "skipLibCheck": true,                          // Skip type checking for declaration files
+    "forceConsistentCasingInFileNames": true,      // Ensure consistent casing for file names
+    "moduleResolution": "node",                    // Properly resolve modules using Node.js resolution
+    "typeRoots": ["./node_modules/@types"],        // Default location for type definitions
+    "types": ["node", "express"],                  // Include types for Node and Express
+  },
+  "include": [
+    "src/**/*.ts"                                  // Include all .ts files in the 'src' folder
+  ],
+  "exclude": [
+    "node_modules"  // Exclude the node_modules folder from TypeScript compilation
+  ]
+}
