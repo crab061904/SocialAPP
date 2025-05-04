@@ -15,7 +15,7 @@ export const getUserById = (id: string): Promise<IUser | null> =>
 
 // Create a new user
 export const createUser = (values: Record<string, any>): Promise<IUser> => {
-    return UserModel.create(values);  // Directly creates and saves the user
+  return UserModel.create(values);  // This will return an IUser
 };
 
   

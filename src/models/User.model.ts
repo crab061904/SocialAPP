@@ -1,17 +1,29 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-// Export the IUser interface
+
 export interface IUser extends Document {
+  _id: string;
+  firstName: string; // Added firstName field
+  lastName: string;  // Added lastName field
   username: string;
   email: string;
-  password: string;
+  password?: string; // Optional password for OAuth users
   role: string;
   avatar: string;
   bio: string;
+  backgroundImage: string; // Added backgroundImage field
   createdAt: Date;
 }
 
 const UserSchema = new Schema<IUser>({
+  firstName: {
+    type: String,
+    required: true,  // Make firstName required
+  },
+  lastName: {
+    type: String,
+    required: true,  // Make lastName required
+  },
   username: {
     type: String,
     required: true,
@@ -24,7 +36,7 @@ const UserSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: true,
+    required: false, // Optional for OAuth users
   },
   avatar: {
     type: String,
@@ -39,11 +51,15 @@ const UserSchema = new Schema<IUser>({
     enum: ['student', 'professor', 'admin'],
     default: 'student',
   },
+  backgroundImage: {
+    type: String,
+    default: '', // Default is empty, you can store image URL here
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-// Export the model
 export const UserModel = mongoose.model<IUser>('User', UserSchema);
+

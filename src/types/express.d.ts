@@ -1,10 +1,9 @@
-// src/types/express.d.ts
-// import { UserModel } from '../models/User.model'; // Adjust the path to your model
+import { IUser } from '../models/User.model';  // Import IUser from your models
 
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       user?: UserModel; // Add the `user` property, which can be optional
-//     }
-//   }
-// }
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser;  // Make sure the `user` property has the correct type
+    }
+  }
+}
