@@ -14,6 +14,7 @@ export interface IUser extends Document {
   orgs: string[];
   studentId: string;
   batchYear: number;
+  department: string;
   createdAt: Date;
 }
 
@@ -69,6 +70,10 @@ const UserSchema = new Schema<IUser>({
   batchYear: {
     type: Number,
     default: 0,
+  },
+  department: {
+    type: String,
+    default: "",
   },
   createdAt: {
     type: Date,

@@ -85,6 +85,7 @@ export const UserController = {
         orgs,
         studentId,
         batchYear,
+        department,
       } = req.body;
 
       if (!firstName || !lastName || !username || !email || !password) {
@@ -118,6 +119,7 @@ export const UserController = {
         orgs,
         studentId,
         batchYear,
+        department,
       };
 
       const newUser = await createUser(userData);
