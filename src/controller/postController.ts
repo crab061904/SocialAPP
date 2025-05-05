@@ -140,6 +140,46 @@ const likePost = async (req: Request, res: Response, next: NextFunction): Promis
     next(error);
   }
 };
+// Get a single post by ID
+const getPostById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;  // Get post ID from params
+    const post = await PostModel.findById(id).populate('user');  // Fetch the post and populate user data
+
+    if (!post) {
+      res.status(404).json({ success: false, error: 'Post not found' });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: post });
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    next(error);
+  }
+};
+// In PostController
+const getPostsByUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { userId } = req.params;  // Get user ID from params
+
+    // Ensure the userId is a valid ObjectId before querying
+    const userObjectId = new Types.ObjectId(userId);
+
+    // Find posts by the user
+    const posts = await PostModel.find({ user: userObjectId }).populate('user');  
+
+    if (!posts || posts.length === 0) {
+    res.status(404).json({ success: false, error: 'No posts found for this user' });
+    return
+    }
+
+    res.status(200).json({ success: true, data: posts });
+  } catch (error) {
+    console.error('Error fetching posts for user:', error);
+    next(error);  // Pass the error to the global error handler
+  }
+};
+
 
 // Export PostController
 export const PostController = {
@@ -148,4 +188,6 @@ export const PostController = {
   deletePost,
   getAllPosts,
   likePost,
+  getPostById,
+  getPostsByUser,
 };
