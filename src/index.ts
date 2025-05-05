@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.route';
 import postRoutes from './routes/postRoute';
 import reelRoutes from './routes/reelRoute';
 import commentRoute from './routes/commentRoute';
+import cors from "cors";
 
 const app = express();
 // Log the environment variables to make sure they are loaded correctly
@@ -29,7 +30,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
 }));
-
+app.use(cors()); // Allow all origins
 // Initialize Passport and session
 app.use(passport.initialize());
 app.use(passport.session());
@@ -39,7 +40,7 @@ app.use('/api/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/reels', reelRoutes);
-app.use('/api/comments', commentRoute); 
+app.use('/api/comments', commentRoute);
 
 // Connect to MongoDB
 const connectDB = async () => {
