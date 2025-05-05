@@ -34,10 +34,10 @@ const PostSchema = new mongoose.Schema({
   },
   tags: [{
     type: String,  // Array to store tags associated with the post
+    default: '', 
   }],
   relatedCourse: {
     type: String,
-    enum: ['CS101', 'Math101', 'History101', 'Bio101'],  // Predefined list of related courses
     default: '',  // Default value if none is selected
   }
 });
