@@ -1,33 +1,45 @@
-// src/models/Post.model.ts
 import mongoose from 'mongoose';
 
-// Post Schema (Post.model.ts)
+// Post Schema
 const PostSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',  // Reference to the User model
-    required: true,  // Ensure user is required
+    ref: 'User',  // Reference to User model
+    required: true,
   },
   text: {
     type: String,
     required: true,  // Post text is required
   },
   media: [{
-    type: String,
+    type: String,  // Array to store media URLs (image/video)
   }],
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Array of User IDs who liked the post
+    ref: 'User',  // Array of User IDs who liked the post
     default: [],
   }],
   comments: [{
-    type: mongoose.Schema.Types.ObjectId, // Use ObjectId to reference Comment model
-    ref: 'Comment',  // Reference to the Comment model
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',  // Array of Comment IDs
   }],
   createdAt: {
     type: Date,
-    default: Date.now,  // Set the default creation time
+    default: Date.now,  // Default timestamp for post creation
   },
+  visibility: {
+    type: String,
+    enum: ['public', 'department-only', 'org-only'],
+    default: 'public',  // Default visibility to public
+  },
+  tags: [{
+    type: String,  // Array to store tags associated with the post
+  }],
+  relatedCourse: {
+    type: String,
+    enum: ['CS101', 'Math101', 'History101', 'Bio101'],  // Predefined list of related courses
+    default: '',  // Default value if none is selected
+  }
 });
 
 export const PostModel = mongoose.model('Post', PostSchema);
