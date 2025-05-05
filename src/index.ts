@@ -10,6 +10,9 @@ import methodOverride from 'method-override';
 
 import userRoutes from './routes/user.route';
 import authRoutes from './routes/auth.route';
+import postRoutes from './routes/postRoute';
+import reelRoutes from './routes/reelRoute';
+import commentRoute from './routes/commentRoute';
 
 const app = express();
 // Log the environment variables to make sure they are loaded correctly
@@ -34,6 +37,9 @@ app.use(passport.session());
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/reels', reelRoutes);
+app.use('/api/comments', commentRoute); 
 
 // Connect to MongoDB
 const connectDB = async () => {

@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { getUsers, getUserByEmail, createUser, deleteUserById, updateUserById } from '../queries/userQueries';
 import bcrypt from 'bcrypt';
 import { generateToken, verifyToken } from '../utils/jwt';
-
 import { IUser } from '../models/User.model';
 
 export const UserController = {
@@ -10,7 +9,6 @@ export const UserController = {
   // Get all users
   getAllUsers: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Hard-code the user retrieval
       const user = (req as Request & { user: any }).user;  // Cast `req.user` as `any`
       console.log('User info from JWT:', user);  // Access user data from JWT
 
@@ -21,69 +19,83 @@ export const UserController = {
       next(error);
     }
   },
- // Get user by email
- getUserByEmail: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const { email } = req.params;
-    const user = (req as Request & { user: any }).user;  // Cast `req.user` as `any`
-    console.log('User info from JWT:', user);  // Access user data from JWT
 
-    const token = req.headers['authorization']?.split(' ')[1];  // Get token from the Authorization header
-    if (token) {
-      const decoded = verifyToken(token);
-      if (!decoded) {
-        res.status(401).json({ success: false, error: 'Invalid or expired token' });
+  // Get user by email
+  getUserByEmail: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { email } = req.params;
+      const user = (req as Request & { user: any }).user;  // Cast `req.user` as `any`
+      console.log('User info from JWT:', user);  // Access user data from JWT
+
+      const token = req.headers['authorization']?.split(' ')[1];  // Get token from the Authorization header
+      if (token) {
+        const decoded = verifyToken(token);
+        if (!decoded) {
+          res.status(401).json({ success: false, error: 'Invalid or expired token' });
+          return;
+        }
+      }
+
+      const fetchedUser = await getUserByEmail(email);
+      if (!fetchedUser) {
+        res.status(404).json({ success: false, error: 'User not found' });
         return;
       }
+
+      res.status(200).json({ success: true, data: fetchedUser });
+    } catch (error) {
+      console.error(error);
+      next(error);
     }
+  },
 
-    const fetchedUser = await getUserByEmail(email);
-    if (!fetchedUser) {
-      res.status(404).json({ success: false, error: 'User not found' });
-      return;
+  // Create a new user
+  createUser: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { firstName, lastName, username, email, password, role, avatar, bio, backgroundImage, department, batchYear, studentId, orgs } = req.body;
+      
+      if (!firstName || !lastName || !username || !email || !password || !role || !department) {
+        res.status(400).json({ success: false, error: 'Missing required fields' });
+        return;
+      }
+
+      const existingUser = await getUserByEmail(email);
+      if (existingUser) {
+        res.status(400).json({ success: false, error: 'Email already exists' });
+        return;
+      }
+
+      const salt = bcrypt.genSaltSync(10);
+      const hashedPassword = bcrypt.hashSync(password, salt);
+
+      const userData = {
+        firstName,
+        lastName,
+        username,
+        email,
+        password: hashedPassword,
+        role,
+        avatar,
+        bio,
+        backgroundImage,
+        department,        // Department can now be passed from the request body
+        batchYear,
+        studentId,
+        orgs,
+      };
+
+      const newUser = await createUser(userData);
+      if (!newUser) {
+        res.status(500).json({ success: false, error: 'Failed to create user' });
+        return;
+      }
+
+      res.status(201).json({ success: true, data: newUser });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      next(error);
     }
-
-    res.status(200).json({ success: true, data: fetchedUser });
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-},
-
-
- // Create a new user
- createUser: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const { firstName, lastName, username, email, password, role, avatar, bio, backgroundImage } = req.body;
-    
-    if (!firstName || !lastName || !username || !email || !password) {
-      res.status(400).json({ success: false, error: 'Missing required fields' });
-      return;
-    }
-
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      res.status(400).json({ success: false, error: 'Email already exists' });
-      return;
-    }
-
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(password, salt);
-    const userData = { firstName, lastName, username, email, password: hashedPassword, role, avatar, bio, backgroundImage };
-
-    const newUser = await createUser(userData);
-    if (!newUser) {
-      res.status(500).json({ success: false, error: 'Failed to create user' });
-      return;
-    }
-
-    res.status(201).json({ success: true, data: newUser });
-  } catch (error) {
-    console.error('Error creating user:', error);
-    next(error);
-  }
-},
-
+  },
 
   // Delete user by ID
   deleteUser: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -125,7 +137,6 @@ export const UserController = {
       next(error);
     }
   },
-  
 
   // Login user (for JWT token generation)
   loginUser: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -146,7 +157,7 @@ export const UserController = {
       }
   
       // Typecast the user to IUser to ensure proper type checking
-      const typedUser = user as IUser;
+      const typedUser = user as IUser;  // Explicitly cast user as IUser
   
       // Check if the user has a password
       if (!typedUser.password) {
@@ -161,19 +172,20 @@ export const UserController = {
         return;
       }
   
-      // Generate JWT token
+      // Generate JWT token using typedUser._id (now properly typed)
       const token = generateToken(typedUser._id.toString(), typedUser.role);  // Now we can safely access _id
-  
+      const { password: _, ...safeUser } = typedUser.toObject();
       // Return the token in the response
       res.status(200).json({
         success: true,
         message: 'Login successful',
-        token: token
+        token: token,
+        user: safeUser,
       });
     } catch (error) {
       console.error('Error logging in:', error);
       next(error);
     }
   },
-  
+
 };

@@ -1,65 +1,58 @@
-import mongoose, { Document, Schema } from 'mongoose';
-
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
   _id: string;
-  firstName: string; // Added firstName field
-  lastName: string;  // Added lastName field
-  username: string;
-  email: string;
-  password?: string; // Optional password for OAuth users
-  role: string;
-  avatar: string;
-  bio: string;
-  backgroundImage: string; // Added backgroundImage field
-  createdAt: Date;
+  firstName: string;
+  lastName: string;
+  background: string;             // Background or introduction of the user
+  username: string;               // Unique identifier (e.g., "juan.delacruz")
+  email: string;                  // Unique, validated (e.g., "juan@ateneo.edu")
+  password: string;               // Hashed password
+  avatar: string;                 // URL to profile image
+  bio: string;                    // Short description (e.g., "CS Student | Debater")
+  followers: mongoose.Types.ObjectId[]; // Array of User references (followers)
+  following: mongoose.Types.ObjectId[]; // Array of User references (following)
+  role: string;                   // "student", "professor", "alumni", "admin", "department", "club", "event"
+  department: string[];           // Array of departments (Selectable options like role)
+  batchYear: number;              // Graduation year (e.g., 2025)
+  studentId: string;              // Optional (e.g., "2020-12345")
+  orgs: string[];                 // Array of organization names (e.g., ["Debate Club", "CS Society"])
+  createdAt: Date;                // Account creation timestamp
 }
 
-const UserSchema = new Schema<IUser>({
-  firstName: {
-    type: String,
-    required: true,  // Make firstName required
-  },
-  lastName: {
-    type: String,
-    required: true,  // Make lastName required
-  },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: false, // Optional for OAuth users
-  },
-  avatar: {
-    type: String,
-    default: '',
-  },
-  bio: {
-    type: String,
-    default: '',
-  },
+const UserSchema = new mongoose.Schema({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  avatar: { type: String },
+  bio: { type: String },
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
   role: {
     type: String,
-    enum: ['student', 'professor', 'admin'],
-    default: 'student',
+    enum: ['student', 'professor', 'alumni', 'admin', 'department', 'club', 'event'],
+    required: true,
   },
-  backgroundImage: {
+  department: [{
     type: String,
-    default: '', // Default is empty, you can store image URL here
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+    enum: ['Computer Science', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Mathematics', 'Physics'],
+  }],
+  batchYear: { type: Number },
+  studentId: { type: String },
+  orgs: [{
+    type: String,
+  }],
+  createdAt: { type: Date, default: Date.now },
 });
 
 export const UserModel = mongoose.model<IUser>('User', UserSchema);
-
