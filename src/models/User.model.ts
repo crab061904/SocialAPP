@@ -1,10 +1,9 @@
-import mongoose, { Document, Schema } from 'mongoose';
-
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser extends Document {
   _id: string;
   firstName: string; // Added firstName field
-  lastName: string;  // Added lastName field
+  lastName: string; // Added lastName field
   username: string;
   email: string;
   password?: string; // Optional password for OAuth users
@@ -12,17 +11,20 @@ export interface IUser extends Document {
   avatar: string;
   bio: string;
   backgroundImage: string; // Added backgroundImage field
+  orgs: string[];
+  studentId: string;
+  batchYear: number;
   createdAt: Date;
 }
 
 const UserSchema = new Schema<IUser>({
   firstName: {
     type: String,
-    required: true,  // Make firstName required
+    required: true, // Make firstName required
   },
   lastName: {
     type: String,
-    required: true,  // Make lastName required
+    required: true, // Make lastName required
   },
   username: {
     type: String,
@@ -40,20 +42,33 @@ const UserSchema = new Schema<IUser>({
   },
   avatar: {
     type: String,
-    default: '',
+    default: "",
   },
   bio: {
     type: String,
-    default: '',
+    default: "",
   },
   role: {
     type: String,
-    enum: ['student', 'professor', 'admin'],
-    default: 'student',
+    enum: ["student", "professor", "admin"],
+    default: "student",
+  },
+  orgs: {
+    type: [String],
+    default: [""],
+    required: false,
   },
   backgroundImage: {
     type: String,
-    default: '', // Default is empty, you can store image URL here
+    default: "", // Default is empty, you can store image URL here
+  },
+  studentId: {
+    type: String,
+    default: "",
+  },
+  batchYear: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,
@@ -61,5 +76,4 @@ const UserSchema = new Schema<IUser>({
   },
 });
 
-export const UserModel = mongoose.model<IUser>('User', UserSchema);
-
+export const UserModel = mongoose.model<IUser>("User", UserSchema);

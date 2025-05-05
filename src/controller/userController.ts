@@ -82,6 +82,9 @@ export const UserController = {
         avatar,
         bio,
         backgroundImage,
+        orgs,
+        studentId,
+        batchYear,
       } = req.body;
 
       if (!firstName || !lastName || !username || !email || !password) {
@@ -92,8 +95,11 @@ export const UserController = {
       }
 
       const existingUser = await getUserByEmail(email);
+
       if (existingUser) {
-        res.status(400).json({ success: false, error: "Email already exists" });
+        res
+          .status(400)
+          .json({ success: false, error: "Email already exists." });
         return;
       }
 
@@ -109,6 +115,9 @@ export const UserController = {
         avatar,
         bio,
         backgroundImage,
+        orgs,
+        studentId,
+        batchYear,
       };
 
       const newUser = await createUser(userData);
