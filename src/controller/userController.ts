@@ -5,6 +5,7 @@ import {
   createUser,
   deleteUserById,
   updateUserById,
+  getUserById
 } from "../queries/userQueries";
 import bcrypt from "bcrypt";
 import { generateToken, verifyToken } from "../utils/jwt";
@@ -249,4 +250,26 @@ export const UserController = {
       next(error);
     }
   },
+  // Get user by ID
+getUserById: async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const user = await getUserById(id); // Call the query function
+
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    next(error);
+  }
+},
+
 };
