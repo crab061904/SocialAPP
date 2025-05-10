@@ -9,5 +9,7 @@ router.post("/", authenticateJWT, ReelController.createReel);
 router.put("/:id", authenticateJWT, ReelController.updateReel);
 router.delete("/:id", authenticateJWT, ReelController.deleteReel);
 router.get("/", ReelController.getAllReels);
+router.post("/:id/view",authenticateJWT, ReelController.incrementViews);
+
 // router.get('/', authenticateJWT, ReelController.getAllReels);
 export default router; // Ensure you export the router

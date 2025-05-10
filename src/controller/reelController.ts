@@ -121,10 +121,37 @@ const deleteReel = async (
   }
 };
 
+// Increment views when a reel is watched
+const incrementViews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const reel = await ReelModel.findById(id);
+    if (!reel) {
+      res.status(404).json({ success: false, error: "Reel not found" });
+      return;
+    }
+
+    reel.views += 1;
+    await reel.save();
+
+    res.status(200).json({ success: true, data: reel });
+  } catch (error) {
+    console.error("Error incrementing views:", error);
+    next(error);
+  }
+};
+
+
 // Export ReelController object
 export const ReelController = {
   createReel,
   getAllReels,
   updateReel,
   deleteReel,
+  incrementViews
 };

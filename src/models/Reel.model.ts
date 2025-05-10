@@ -55,6 +55,11 @@ const ReelSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  views: {
+    type: Number,
+    default: 0,
+  }
+  
 });
 
 export const ReelModel = mongoose.model("Reel", ReelSchema);
