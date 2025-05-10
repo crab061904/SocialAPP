@@ -94,6 +94,26 @@ const deleteReel = async (req: Request, res: Response, next: NextFunction): Prom
     next(error);
   }
 };
+const viewReel = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const reel = await ReelModel.findById(id);
+    if (!reel) {
+      res.status(404).json({ success: false, error: 'Reel not found' });
+      return;
+    }
+
+    // Increment the views count by 1
+    reel.views += 1;
+    await reel.save();
+
+    res.status(200).json({ success: true, data: reel });
+  } catch (error) {
+    console.error('Error viewing reel:', error);
+    next(error);
+  }
+};
 
 
 // Export ReelController object
