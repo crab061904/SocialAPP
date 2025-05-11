@@ -1,11 +1,13 @@
 // controller/storyController.ts
 import { Request, Response, NextFunction } from "express";
 import { StoryModel } from "../models/Stories.model";
-import { IUser } from "../models/User.model";
+import { IUser, UserModel } from "../models/User.model";
 import slugify from "slugify";
 import { Types } from 'mongoose';
+import { NotificationModel } from "../models/notification.model";
 // Create a new story
 
+// controller/storyController.ts
 const createStory = async (
     req: Request,
     res: Response,
@@ -15,7 +17,6 @@ const createStory = async (
       const { Type_Of_Story, text, media, visibility, textStyle } = req.body;
       const user = (req as Request & { user: IUser }).user; // Get logged-in user from JWT
   
-      // Generate a slug from the text
       const slug = slugify(text, { lower: true, strict: true });
   
       const newStory = new StoryModel({
@@ -25,13 +26,26 @@ const createStory = async (
         media,
         visibility,
         textStyle,
-        slug, // Ensure slug is included in the new story
+        slug,
       });
   
       console.log("NEW STORY: ", newStory);
   
-      // Save the story to the database
       await newStory.save();
+  
+      // Notify followers of the new story
+      const followers = await UserModel.find({ following: user._id }); // Find users following this user
+      followers.forEach(async (follower) => {
+        const notification = new NotificationModel({
+          recipient: follower._id,
+          sender: user._id,
+          type: 'follow',
+          reference: { type: 'Story', id: newStory._id },
+          seen: false,
+        });
+        await notification.save();
+      });
+  
       res.status(201).json({ success: true, data: newStory });
     } catch (error) {
       console.error("Error creating story:", error);
@@ -39,51 +53,64 @@ const createStory = async (
     }
   };
   
-  // Like or Unlike a story
-  const likeStory = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { id } = req.params;  // Story ID from the URL parameter
-      const user = (req as Request & { user: IUser }).user;  // Accessing the user from JWT
   
-      // Ensure user is authenticated
-      if (!user || !user._id) {
-        res.status(403).json({ success: false, error: 'User is not authenticated or user ID is missing' });
+  // Like or Unlike a story
+  const likeStory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { storyId } = req.params;
+      const user = (req as Request & { user: IUser }).user;
+  
+      console.log("storyId:", storyId);  // Debugging storyId
+      console.log("User ID:", user._id);  // Debugging user ID
+  
+      if (!Types.ObjectId.isValid(storyId)) {
+        res.status(400).json({ success: false, error: 'Invalid story ID' });
         return;
       }
   
-      // Find the story by ID
-      const story = await StoryModel.findById(id);
+      const story = await StoryModel.findById(storyId);
       if (!story) {
         res.status(404).json({ success: false, error: 'Story not found' });
         return;
       }
   
-      // Convert user._id to ObjectId if necessary
       const userId = new Types.ObjectId(user._id);
+      console.log("userId as ObjectId:", userId);
   
-      // Check if the user has already liked the story
       const userIndex = story.likes.indexOf(userId);
-      
+      console.log("User index in likes array:", userIndex);
+  
       if (userIndex > -1) {
-        // If the user has already liked the story, remove their like
         story.likes.splice(userIndex, 1);
         await story.save();
         res.status(200).json({ success: true, message: 'Like removed', data: story });
       } else {
-        // If the user has not liked the story yet, add their like
         story.likes.push(userId);
         await story.save();
+  
+        const storyOwner = await UserModel.findById(story.user);
+        if (storyOwner) {
+          const newNotification = new NotificationModel({
+            recipient: storyOwner._id,
+            sender: user._id,
+            type: 'like',
+            reference: { type: 'Story', id: story._id },
+            seen: false,
+            createdAt: new Date(),
+          });
+          await newNotification.save();
+        }
+  
         res.status(200).json({ success: true, message: 'Story liked', data: story });
       }
     } catch (error) {
       console.error('Error liking/unliking story:', error);
-      next(error); // Pass error to global handler
+      next(error);
     }
   };
+  
+  
+  
 
 // Get all stories
 const getAllStories = async (

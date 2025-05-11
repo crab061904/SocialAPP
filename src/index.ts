@@ -14,6 +14,10 @@ import postRoutes from './routes/postRoute';
 import reelRoutes from './routes/reelRoute';
 import commentRoute from './routes/commentRoute';
 import storyRoutes from './routes/stories.route';  // Import the story routes
+import notificationRoutes from './routes/notificationRoutes';
+
+// Add the route
+
 
 import cors from "cors";
 
@@ -44,6 +48,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/reels', reelRoutes);
 app.use('/api/comments', commentRoute);
 app.use('/api/stories', storyRoutes);  
+app.use('/api/notifications',notificationRoutes);
 
 
 // Connect to MongoDB

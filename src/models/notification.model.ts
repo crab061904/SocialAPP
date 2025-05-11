@@ -4,9 +4,9 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 export interface INotification extends Document {
   recipient: Types.ObjectId;
   sender: Types.ObjectId;
-  type: 'like' | 'comment' | 'follow' | 'share';
+  type: 'like' | 'comment' | 'follow' | 'unfollow' | 'share'; // Added 'unfollow'
   reference: {
-    type: 'Post' | 'Reel' | 'Comment';
+    type: 'Post' | 'Reel' | 'Comment' | 'User' | 'Story'; // 'User' for follow/unfollow
     id: Types.ObjectId;
   };
   seen: boolean;
@@ -27,13 +27,13 @@ const NotificationSchema: Schema<INotification> = new Schema({
   },
   type: {
     type: String,
-    enum: ['like', 'comment', 'follow', 'share'],
+    enum: ['like', 'comment', 'follow', 'unfollow', 'share'], // Added 'unfollow' to types
     required: true,
   },
   reference: {
     type: {
       type: String,
-      enum: ['Post', 'Reel', 'Comment'],
+      enum: ['Post', 'Reel', 'Comment', 'User', 'Story'], // 'User' for follow/unfollow
       required: true,
     },
     id: {

@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { PostModel } from '../models/Post.model';
-import { IUser } from '../models/User.model';
+import { IUser, UserModel } from '../models/User.model';
 import { Types } from 'mongoose';
+import { NotificationModel } from '../models/notification.model';
 
 // Create a new post
+// controller/postController.ts
 const createPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const user = (req as Request & { user: IUser }).user;  // Accessing the user from JWT
@@ -29,6 +31,19 @@ const createPost = async (req: Request, res: Response, next: NextFunction): Prom
     // Save the new post
     await newPost.save();
 
+    // Notify followers of the new post
+    const followers = await UserModel.find({ following: user._id }); // Find users following this user
+    followers.forEach(async (follower) => {
+      const notification = new NotificationModel({
+        recipient: follower._id,
+        sender: user._id,
+        type: 'follow',
+        reference: { type: 'Post', id: newPost._id },
+        seen: false,
+      });
+      await notification.save();
+    });
+
     // Respond with the created post data
     res.status(201).json({ success: true, data: newPost });
   } catch (error) {
@@ -36,6 +51,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction): Prom
     next(error);  // Pass error to global handler
   }
 };
+
 
 // Update an existing post
 const updatePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -110,7 +126,8 @@ const getAllPosts = async (req: Request, res: Response, next: NextFunction): Pro
 };
 
 // Like a post
-const likePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// controller/postController.ts
+const likePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => { 
   try {
     const { postId } = req.params;
     const user = (req as Request & { user: IUser }).user;
@@ -133,6 +150,22 @@ const likePost = async (req: Request, res: Response, next: NextFunction): Promis
       // Add like if not liked yet
       post.likes.push(userId);
       await post.save();
+      
+      // Create notification for the post owner
+      const postOwner = await UserModel.findById(post.user);
+      if (postOwner) {
+        const message = `${user.firstName} liked your post`;
+        const newNotification = new NotificationModel({
+          recipient: postOwner._id,
+          sender: user._id,
+          type: 'like',
+          reference: { type: 'Post', id: post._id },
+          seen: false,
+          createdAt: new Date(),
+        });
+        await newNotification.save();
+      }
+
       res.status(200).json({ success: true, message: 'Post liked', data: post });
     }
   } catch (error) {
@@ -140,6 +173,7 @@ const likePost = async (req: Request, res: Response, next: NextFunction): Promis
     next(error);
   }
 };
+
 // Get a single post by ID
 const getPostById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

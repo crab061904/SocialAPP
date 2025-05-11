@@ -1,9 +1,11 @@
 // controller/reelController.ts
 import { Request, Response, NextFunction } from "express";
 import { ReelModel } from "../models/Reel.model";
-import { IUser } from "../models/User.model";
+import { IUser, UserModel } from "../models/User.model";
 import { Types } from 'mongoose';
+import { NotificationModel } from "../models/notification.model";
 // Create a new reel
+// controller/reelController.ts
 const createReel = async (
   req: Request,
   res: Response,
@@ -25,6 +27,20 @@ const createReel = async (
     console.log("NEW REEL: ", newReel);
 
     await newReel.save();
+
+    // Notify followers of the new reel
+    const followers = await UserModel.find({ following: user._id }); // Find users following this user
+    followers.forEach(async (follower) => {
+      const notification = new NotificationModel({
+        recipient: follower._id,
+        sender: user._id,
+        type: 'follow',
+        reference: { type: 'Reel', id: newReel._id },
+        seen: false,
+      });
+      await notification.save();
+    });
+
     res.status(201).json({ success: true, data: newReel });
   } catch (error) {
     console.error("Error creating reel:", error);
@@ -146,50 +162,62 @@ const incrementViews = async (
   }
 };
 
-const likeReel = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+const likeReel = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { id } = req.params;  // Reel ID from the URL parameter
-    const user = (req as Request & { user: IUser }).user;  // Access the user from JWT
-  
-    // Ensure user is authenticated
-    if (!user || !user._id) {
-      res.status(403).json({ success: false, error: 'User is not authenticated or user ID is missing' });
+    const { reelId } = req.params;
+    const user = (req as Request & { user: IUser }).user;
+
+    console.log("reelId:", reelId);  // Debugging reelId
+    console.log("User ID:", user._id);  // Debugging user ID
+
+    if (!Types.ObjectId.isValid(reelId)) {
+      res.status(400).json({ success: false, error: 'Invalid reel ID' });
       return;
     }
-  
-    // Find the reel by ID
-    const reel = await ReelModel.findById(id);
+
+    const reel = await ReelModel.findById(reelId);
     if (!reel) {
       res.status(404).json({ success: false, error: 'Reel not found' });
       return;
     }
-  
-    // Convert user._id to ObjectId if necessary
+
     const userId = new Types.ObjectId(user._id);
-  
-    // Check if the user has already liked the reel
+    console.log("userId as ObjectId:", userId);
+
     const userIndex = reel.likes.indexOf(userId);
-    
+    console.log("User index in likes array:", userIndex);
+
     if (userIndex > -1) {
-      // If the user has already liked the reel, remove their like
       reel.likes.splice(userIndex, 1);
       await reel.save();
       res.status(200).json({ success: true, message: 'Like removed', data: reel });
     } else {
-      // If the user has not liked the reel yet, add their like
       reel.likes.push(userId);
       await reel.save();
+
+      const reelOwner = await UserModel.findById(reel.user);
+      if (reelOwner) {
+        const newNotification = new NotificationModel({
+          recipient: reelOwner._id,
+          sender: user._id,
+          type: 'like',
+          reference: { type: 'Reel', id: reel._id },
+          seen: false,
+          createdAt: new Date(),
+        });
+        await newNotification.save();
+      }
+
       res.status(200).json({ success: true, message: 'Reel liked', data: reel });
     }
   } catch (error) {
     console.error('Error liking/unliking reel:', error);
-    next(error); // Pass error to global handler
+    next(error);
   }
 };
+
+
+
 
 // Export ReelController object
 export const ReelController = {

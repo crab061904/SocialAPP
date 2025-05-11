@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { PostModel } from '../models/Post.model';
 import { ReelModel } from '../models/Reel.model';
 import { CommentModel } from '../models/comments.model';
-import { IUser } from '../models/User.model';
+import { IUser, UserModel } from '../models/User.model';
 import { Types } from 'mongoose';  // Import Types from mongoose for ObjectId conversion
+import { NotificationModel } from '../models/notification.model';
 
 // Helper function to check if the logged-in user is the comment's author or an admin
 const isAuthorizedToEditOrDelete = (userId: Types.ObjectId, comment: any): boolean => {
@@ -36,6 +37,21 @@ const addCommentToPost = async (req: Request, res: Response, next: NextFunction)
     post.comments.push(newComment._id);
     await post.save();
 
+    // Create notification for the post owner
+    const postOwner = await UserModel.findById(post.user);
+    if (postOwner) {
+      const message = `${user.firstName} commented on your post`;
+      const newNotification = new NotificationModel({
+        recipient: postOwner._id,
+        sender: user._id,
+        type: 'comment',
+        reference: { type: 'Post', id: post._id },
+        seen: false,
+        createdAt: new Date(),
+      });
+      await newNotification.save();
+    }
+
     res.status(201).json({ success: true, data: newComment });
   } catch (error) {
     console.error('Error adding comment to post:', error);
@@ -46,7 +62,7 @@ const addCommentToPost = async (req: Request, res: Response, next: NextFunction)
 // Add a comment to a reel
 const addCommentToReel = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { reelId, text } = req.body;
+    const { reelId, text } = req.body;  // Get reelId and comment text from request body
     const user = (req as Request & { user: IUser }).user;
 
     const reel = await ReelModel.findById(reelId);
@@ -66,12 +82,28 @@ const addCommentToReel = async (req: Request, res: Response, next: NextFunction)
     reel.comments.push(newComment._id);
     await reel.save();
 
+    // Create notification for the reel owner
+    const reelOwner = await UserModel.findById(reel.user);
+    if (reelOwner) {
+      const message = `${user.firstName} commented on your reel`;
+      const newNotification = new NotificationModel({
+        recipient: reelOwner._id,
+        sender: user._id,
+        type: 'comment',
+        reference: { type: 'Reel', id: reel._id },
+        seen: false,
+        createdAt: new Date(),
+      });
+      await newNotification.save();
+    }
+
     res.status(201).json({ success: true, data: newComment });
   } catch (error) {
     console.error('Error adding comment to reel:', error);
     next(error);
   }
 };
+
 
 // Update a comment
 const updateComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
