@@ -13,6 +13,8 @@ import authRoutes from './routes/auth.route';
 import postRoutes from './routes/postRoute';
 import reelRoutes from './routes/reelRoute';
 import commentRoute from './routes/commentRoute';
+import storyRoutes from './routes/stories.route';  // Import the story routes
+
 import cors from "cors";
 
 const app = express();
@@ -41,6 +43,8 @@ app.use('/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/reels', reelRoutes);
 app.use('/api/comments', commentRoute);
+app.use('/api/stories', storyRoutes);  
+
 
 // Connect to MongoDB
 const connectDB = async () => {

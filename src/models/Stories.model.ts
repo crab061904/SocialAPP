@@ -32,7 +32,7 @@ const StoriesSchema = new mongoose.Schema({
     },
     background: {
       type: String,
-      default: 'bg-gradient-to-tr from-blue-400 to-purple-500',
+      default: 'bg-gradient-to-tr from-blue-400 to-purple-500', // Default background gradient
     },
   },
   media: [
@@ -44,7 +44,7 @@ const StoriesSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: [], // Array of user IDs who liked the story
+      default: [],
     },
   ],
   visibility: {
@@ -63,8 +63,13 @@ const StoriesSchema = new mongoose.Schema({
   slug: {
     type: String,
     unique: true,
-    set: (value: string): string => slugify(value, { lower: true, strict: true }), // Set the value type as string
+    set: (value: string): string => slugify(value, { lower: true, strict: true }),
+  },
+  views: {
+    type: Number,
+    default: 0,
   },
 });
 
-module.exports = mongoose.model('Story', StoriesSchema);
+// Export the model properly
+export const StoryModel = mongoose.model('Story', StoriesSchema);
