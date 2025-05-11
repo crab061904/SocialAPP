@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Define routes for Stories
 router.post("/create",  authenticateJWT, StoryController.createStory);  // Create a new story
-router.put("/:id/like", authenticateJWT, StoryController.likeStory);
+router.post("/:storyId/like", authenticateJWT, StoryController.likeStory);
 router.get("/", StoryController.getAllStories);                    // Get all stories
 router.get("/:id", StoryController.getStoryById);                  // Get a single story by ID
 router.get("/user/:userId", StoryController.getAllStoriesFromUser); // Get all stories from a specific user

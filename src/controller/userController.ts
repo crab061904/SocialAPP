@@ -5,6 +5,7 @@ import { generateToken, verifyToken } from "../utils/jwt";
 import { IUser } from "../models/User.model";
 import { UserModel } from "../models/User.model";
 import { Types } from "mongoose";
+import { NotificationModel } from '../models/notification.model';
 
 export const UserController = {
   // Get all users
@@ -262,7 +263,6 @@ export const UserController = {
       const { userId } = req.params;  // userId from params (string)
       const tokenUserId = (req as Request & { user: IUser }).user._id;  // User ID from JWT token
   
-      // Fetch the full user document from the database
       const currentUser = await UserModel.findById(tokenUserId);
       if (!currentUser) {
         res.status(404).json({ success: false, error: "Current user not found" });
@@ -275,7 +275,6 @@ export const UserController = {
         return;
       }
   
-      // Convert string `userId` to ObjectId using `new Types.ObjectId()`
       const userToFollow = await UserModel.findById(new Types.ObjectId(userId));
       if (!userToFollow) {
         res.status(404).json({ success: false, error: "User to follow not found" });
@@ -296,6 +295,17 @@ export const UserController = {
       await userToFollow.save();
       await currentUser.save();
   
+      // Create notification for follow
+      const notification = new NotificationModel({
+        recipient: userToFollow._id,
+        sender: currentUser._id,
+        type: 'follow',
+        reference: { type: 'User', id: currentUser._id },
+        seen: false,
+        createdAt: new Date(),
+      });
+      await notification.save();
+  
       res.status(200).json({ success: true, message: "Followed successfully", data: userToFollow });
     } catch (error) {
       console.error("Error following user:", error);
@@ -303,31 +313,18 @@ export const UserController = {
     }
   },
   
-  
-  
-
   // Unfollow user
-  unfollowUser: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  unfollowUser: async (req: Request, res: Response, next: NextFunction): Promise<void> => { 
     try {
-      const { userId } = req.params; // userId from params (user to unfollow)
+      const { userId } = req.params;  // userId from params (user to unfollow)
       const tokenUserId = (req as Request & { user: IUser }).user._id; // Current logged-in user ID
   
-      // Fetch the current user from the database
       const currentUser = await UserModel.findById(tokenUserId);
       if (!currentUser) {
         res.status(404).json({ success: false, error: "Current user not found" });
         return;
       }
   
-      // Log currentUser and their following list for debugging
-      console.log("Current User:", currentUser);
-      console.log("Current User Following List:", currentUser.following);
-  
-      // Ensure they are following the user before unfollowing
       const isFollowing = currentUser.following.some(
         (followingId) => followingId.toString() === userId
       );
@@ -358,12 +355,25 @@ export const UserController = {
       await currentUser.save();
       await userToUnfollow.save();
   
+      // Create notification for unfollow action
+      const notification = new NotificationModel({
+        recipient: userToUnfollow._id,
+        sender: currentUser._id,
+        type: 'unfollow',  // Changed to 'unfollow' type
+        reference: { type: 'User', id: currentUser._id },  // Reference is the currentUser (who unfollowed)
+        seen: false,
+        createdAt: new Date(),
+      });
+      await notification.save();
+  
       res.status(200).json({ success: true, message: "Unfollowed successfully" });
     } catch (error) {
       console.error("Error unfollowing user:", error);
-      next(error); // Pass error to global error handler
+      next(error);  // Pass error to global error handler
     }
   },
+  
+  
   // Get all followers for a specific user by ID
   getAllFollowers: async (
     req: Request,
