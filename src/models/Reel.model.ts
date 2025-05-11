@@ -42,7 +42,7 @@ const ReelSchema = new mongoose.Schema({
   ],
   visibility: {
     type: String,
-    enum: ["public", "department", "org"],
+    enum: ["public", "department-only", "followers-only"],
     default: "",
   },
   tags: [
@@ -58,8 +58,7 @@ const ReelSchema = new mongoose.Schema({
   views: {
     type: Number,
     default: 0,
-  }
-  
+  },
 });
 
 export const ReelModel = mongoose.model("Reel", ReelSchema);
