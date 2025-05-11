@@ -1,16 +1,16 @@
-import mongoose from 'mongoose';
-import slugify from 'slugify';
+import mongoose from "mongoose";
+import slugify from "slugify";
 
 // Define the schema
 const StoriesSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   Type_Of_Story: {
     type: String,
-    enum: ['image', 'text'],
+    enum: ["image", "text"],
   },
   text: {
     type: String,
@@ -32,7 +32,7 @@ const StoriesSchema = new mongoose.Schema({
     },
     background: {
       type: String,
-      default: 'bg-gradient-to-tr from-blue-400 to-purple-500', // Default background gradient
+      default: "bg-gradient-to-tr from-blue-400 to-purple-500", // Default background gradient
     },
   },
   media: [
@@ -43,14 +43,14 @@ const StoriesSchema = new mongoose.Schema({
   likes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: [],
     },
   ],
   visibility: {
     type: String,
-    enum: ['public', 'department', 'org'],
-    default: 'public',
+    enum: ["public", "department-only", "followers-only"],
+    default: "public",
   },
   createdAt: {
     type: Date,
@@ -63,7 +63,8 @@ const StoriesSchema = new mongoose.Schema({
   slug: {
     type: String,
     unique: true,
-    set: (value: string): string => slugify(value, { lower: true, strict: true }),
+    set: (value: string): string =>
+      slugify(value, { lower: true, strict: true }),
   },
   views: {
     type: Number,
@@ -72,4 +73,4 @@ const StoriesSchema = new mongoose.Schema({
 });
 
 // Export the model properly
-export const StoryModel = mongoose.model('Story', StoriesSchema);
+export const StoryModel = mongoose.model("Story", StoriesSchema);
