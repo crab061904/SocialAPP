@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ReelModel } from "../models/Reel.model";
 import { IUser } from "../models/User.model";
-
+import { Types } from 'mongoose';
 // Create a new reel
 const createReel = async (
   req: Request,
@@ -146,6 +146,50 @@ const incrementViews = async (
   }
 };
 
+const likeReel = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;  // Reel ID from the URL parameter
+    const user = (req as Request & { user: IUser }).user;  // Access the user from JWT
+  
+    // Ensure user is authenticated
+    if (!user || !user._id) {
+      res.status(403).json({ success: false, error: 'User is not authenticated or user ID is missing' });
+      return;
+    }
+  
+    // Find the reel by ID
+    const reel = await ReelModel.findById(id);
+    if (!reel) {
+      res.status(404).json({ success: false, error: 'Reel not found' });
+      return;
+    }
+  
+    // Convert user._id to ObjectId if necessary
+    const userId = new Types.ObjectId(user._id);
+  
+    // Check if the user has already liked the reel
+    const userIndex = reel.likes.indexOf(userId);
+    
+    if (userIndex > -1) {
+      // If the user has already liked the reel, remove their like
+      reel.likes.splice(userIndex, 1);
+      await reel.save();
+      res.status(200).json({ success: true, message: 'Like removed', data: reel });
+    } else {
+      // If the user has not liked the reel yet, add their like
+      reel.likes.push(userId);
+      await reel.save();
+      res.status(200).json({ success: true, message: 'Reel liked', data: reel });
+    }
+  } catch (error) {
+    console.error('Error liking/unliking reel:', error);
+    next(error); // Pass error to global handler
+  }
+};
 
 // Export ReelController object
 export const ReelController = {
@@ -153,5 +197,6 @@ export const ReelController = {
   getAllReels,
   updateReel,
   deleteReel,
-  incrementViews
+  incrementViews,
+  likeReel,
 };
