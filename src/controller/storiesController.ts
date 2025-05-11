@@ -17,7 +17,9 @@ const createStory = async (
     const { Type_Of_Story, text, media, visibility, textStyle } = req.body;
     const user = (req as Request & { user: IUser }).user; // Get logged-in user from JWT
 
-    const slug = slugify(text, { lower: true, strict: true });
+    const slug = text?.trim()
+      ? slugify(text, { lower: true, strict: true })
+      : `story-${Date.now()}`;
 
     const newStory = new StoryModel({
       user: user._id,
