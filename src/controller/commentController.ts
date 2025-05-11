@@ -1,14 +1,14 @@
-// controller/commentController.ts
-
 import { Request, Response, NextFunction } from 'express';
 import { PostModel } from '../models/Post.model';
 import { ReelModel } from '../models/Reel.model';
 import { CommentModel } from '../models/comments.model';
 import { IUser } from '../models/User.model';
+import { Types } from 'mongoose';  // Import Types from mongoose for ObjectId conversion
 
 // Helper function to check if the logged-in user is the comment's author or an admin
-const isAuthorizedToEditOrDelete = (userId: string, comment: any) => {
-  return comment.user.toString() === userId || comment.user.role === 'admin';
+const isAuthorizedToEditOrDelete = (userId: Types.ObjectId, comment: any): boolean => {
+  // Convert both userId and comment.user to string for comparison
+  return comment.user.toString() === userId.toString() || comment.user.role === 'admin';
 };
 
 // Add a comment to a post
@@ -85,6 +85,7 @@ const updateComment = async (req: Request, res: Response, next: NextFunction): P
       return;
     }
 
+    // Ensure that user._id is compared correctly (as an ObjectId)
     if (!isAuthorizedToEditOrDelete(user._id, comment)) {
       res.status(403).json({ success: false, error: 'Unauthorized to edit this comment' });
       return;
@@ -112,6 +113,7 @@ const deleteComment = async (req: Request, res: Response, next: NextFunction): P
       return;
     }
 
+    // Ensure that user._id is compared correctly (as an ObjectId)
     if (!isAuthorizedToEditOrDelete(user._id, comment)) {
       res.status(403).json({ success: false, error: 'Unauthorized to delete this comment' });
       return;

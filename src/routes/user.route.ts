@@ -15,4 +15,13 @@ router.delete('/:id', authenticateJWT, UserController.deleteUser); // Delete use
 router.put('/:id', authenticateJWT, UserController.updateUser); // Update user by ID (protected route)
 router.get("/:id", UserController.getUserById);
 
+router.post("/:userId/follow", authenticateJWT, UserController.followUser);  // Follow a user
+router.post("/:userId/unfollow", authenticateJWT, UserController.unfollowUser);
+
+// Get all followers of a user by their ID
+router.get("/:id/followers", authenticateJWT, UserController.getAllFollowers); 
+
+// Get all users that a user is following by their ID
+router.get("/:id/following", authenticateJWT, UserController.getAllFollowing);
 export default router;
+

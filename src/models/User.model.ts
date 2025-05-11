@@ -1,23 +1,23 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
-  _id: string;
+  _id: mongoose.Types.ObjectId; // Change this from string to ObjectId
   firstName: string;
   lastName: string;
-  backgroundImage: string;             // Background or introduction of the user
-  username: string;               // Unique identifier (e.g., "juan.delacruz")
-  email: string;                  // Unique, validated (e.g., "juan@ateneo.edu")
-  password: string;               // Hashed password
-  avatar: string;                 // URL to profile image
-  bio: string;                    // Short description (e.g., "CS Student | Debater")
-  followers: mongoose.Types.ObjectId[]; // Array of User references (followers)
-  following: mongoose.Types.ObjectId[]; // Array of User references (following)
-  role: string;                   // "student", "professor", "alumni", "admin", "department", "club", "event"
-  department: string[];           // Array of departments (Selectable options like role)
-  batchYear: number;              // Graduation year (e.g., 2025)
-  studentId: string;              // Optional (e.g., "2020-12345")
-  orgs: string[];                 // Array of organization names (e.g., ["Debate Club", "CS Society"])
-  createdAt: Date;                // Account creation timestamp
+  backgroundImage: string;             
+  username: string;
+  email: string;
+  password: string;
+  avatar: string;
+  bio: string;
+  followers: mongoose.Types.ObjectId[]; // Array of ObjectId
+  following: mongoose.Types.ObjectId[]; // Array of ObjectId
+  role: string;
+  department: string[];
+  batchYear: number;
+  studentId: string;
+  orgs: string[];
+  createdAt: Date;
 }
 
 const UserSchema = new mongoose.Schema({
