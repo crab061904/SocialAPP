@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId; // Change this from string to ObjectId
   firstName: string;
   lastName: string;
-  backgroundImage: string;             
+  backgroundImage: string;
   username: string;
   email: string;
   password: string;
@@ -28,33 +28,59 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String },
   bio: { type: String },
-  followers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: [],
-  }],
-  following: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: [],
-  }],
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: [],
+    },
+  ],
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: [],
+    },
+  ],
   role: {
     type: String,
-    enum: ['student', 'professor', 'alumni', 'admin', 'department', 'club', 'event']
+    enum: [
+      "student",
+      "professor",
+      "alumni",
+      "admin",
+      "department",
+      "club",
+      "event",
+    ],
   },
-  department: [{
-    type: String,
-    enum: ['Computer Science', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Mathematics', 'Physics'],
-  }],
+  department: [
+    {
+      type: String,
+      enum: [
+        "College of Business and Accountancy",
+        "College of Computer Studies",
+        "College of Education",
+        "College of Humanities and Social Sciences",
+        "College of Law",
+        "College of Nursing",
+        "College of Science, Engineering, and Architecture",
+      ],
+    },
+  ],
   batchYear: { type: Number },
   studentId: { type: String },
-  orgs: [{
-    type: String,
-  }],
+  orgs: [
+    {
+      type: String,
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
-  backgroundImage: [{
-    type: String,
-    default:[] // Change this line to reflect an array of strings
-  }],
+  backgroundImage: [
+    {
+      type: String,
+      default: [], // Change this line to reflect an array of strings
+    },
+  ],
 });
-export const UserModel = mongoose.model<IUser>('User', UserSchema);
+export const UserModel = mongoose.model<IUser>("User", UserSchema);
