@@ -1,13 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
 import express from 'express';
 import session from 'express-session';
-import passport from 'passport';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import methodOverride from 'method-override';
-
+import cors from 'cors';
 import userRoutes from './routes/user.route';
 import authRoutes from './routes/auth.route';
 import postRoutes from './routes/postRoute';
@@ -15,11 +13,9 @@ import reelRoutes from './routes/reelRoute';
 import commentRoute from './routes/commentRoute';
 import storyRoutes from './routes/stories.route';  // Import the story routes
 import notificationRoutes from './routes/notificationRoutes';
-
+import passport from './config/passport';
 // Add the route
 
-
-import cors from "cors";
 
 const app = express();
 // Log the environment variables to make sure they are loaded correctly
@@ -31,11 +27,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(methodOverride('_method'));
 
-app.use(session({
-  secret: process.env.SECRET_KEY || 'default-session-secret',
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(
+  session({
+    secret: process.env.SECRET_KEY || 'your-default-secret',  // Your session secret
+    resave: false,
+    saveUninitialized: true,  // Make sure the session is stored correctly
+    cookie: { secure: false },  // If you're not using HTTPS, set `secure` to false
+  })
+);
 app.use(cors()); // Allow all origins
 // Initialize Passport and session
 app.use(passport.initialize());

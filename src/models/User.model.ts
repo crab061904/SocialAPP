@@ -1,70 +1,70 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
+// Define the IUser interface, which extends mongoose.Document
 export interface IUser extends Document {
-  _id: mongoose.Types.ObjectId; // Change this from string to ObjectId
+  _id: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
-  backgroundImage: string;
   username: string;
   email: string;
-  password: string;
+  password?: string; // Optional password for Google Auth users
   avatar: string;
   bio: string;
-  followers: mongoose.Types.ObjectId[]; // Array of ObjectId
-  following: mongoose.Types.ObjectId[]; // Array of ObjectId
+  followers: mongoose.Types.ObjectId[];
+  following: mongoose.Types.ObjectId[];
   role: string;
   department: string[];
   batchYear: number;
   studentId: string;
   orgs: string[];
   createdAt: Date;
+  backgroundImage: string[];
+  googleAuth: boolean; // Add googleAuth field
 }
 
-const UserSchema = new mongoose.Schema({
+// Define the User Schema
+const UserSchema: Schema<IUser> = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: function () {
+      return !this.googleAuth; // Only require password if not using Google OAuth
+    },
+  },
   avatar: { type: String },
   bio: { type: String },
   followers: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: [],
     },
   ],
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: [],
     },
   ],
   role: {
     type: String,
-    enum: [
-      "student",
-      "professor",
-      "alumni",
-      "admin",
-      "department",
-      "club",
-      "event",
-    ],
+    enum: ['student', 'professor', 'alumni', 'admin', 'department', 'club', 'event'],
   },
   department: [
     {
       type: String,
       enum: [
-        "College of Business and Accountancy",
-        "College of Computer Studies",
-        "College of Education",
-        "College of Humanities and Social Sciences",
-        "College of Law",
-        "College of Nursing",
-        "College of Science, Engineering, and Architecture",
+        'College of Business and Accountancy',
+        'College of Computer Studies',
+        'College of Education',
+        'College of Humanities and Social Sciences',
+        'College of Law',
+        'College of Nursing',
+        'College of Science, Engineering, and Architecture',
       ],
     },
   ],
@@ -79,8 +79,11 @@ const UserSchema = new mongoose.Schema({
   backgroundImage: [
     {
       type: String,
-      default: [], // Change this line to reflect an array of strings
+      default: [],
     },
   ],
+  googleAuth: { type: Boolean, default: false }, // googleAuth flag to track OAuth users
 });
-export const UserModel = mongoose.model<IUser>("User", UserSchema);
+
+// Export the User model with the IUser type
+export const UserModel = mongoose.model<IUser>('User', UserSchema);

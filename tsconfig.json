@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "target": "es2016",                            // Set the target ECMAScript version
     "module": "commonjs",                          // Use CommonJS modules for Node.js
     "outDir": "./dist",                            // Output compiled files to the 'dist' folder
@@ -16,7 +17,7 @@
   "include": [
     "src/**/*.ts",                                 // Include all .ts files in the 'src' folder
     "src/types/**/*.d.ts"                          // Ensure TypeScript loads the custom type definition file
-  ],
+, "src/config/passport.js"  ],
   "exclude": [
     "node_modules"  // Exclude the node_modules folder from TypeScript compilation
   ]
