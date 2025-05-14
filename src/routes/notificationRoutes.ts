@@ -11,5 +11,5 @@ router.put('/:notificationId/seen',  authenticateJWT,NotificationController.mark
 
 // Route to delete a notification
 router.delete('/:notificationId', authenticateJWT, NotificationController.deleteNotification);
-
+router.delete("/user/:userId", authenticateJWT, NotificationController.deleteAllNotificationsByUserId);
 export default router;

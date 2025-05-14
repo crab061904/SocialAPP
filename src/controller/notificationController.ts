@@ -87,10 +87,36 @@ const deleteNotification = async (
     next(error); // Pass error to global error handler
   }
 };
+const deleteAllNotificationsByUserId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.params.userId; // Get user ID from params
 
+    // Find and delete all notifications for the user
+    const result = await NotificationModel.deleteMany({ recipient: new Types.ObjectId(userId) });
+
+    if (result.deletedCount === 0) {
+      res.status(404).json({ success: false, error: "No notifications found for the user" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "All notifications deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error deleting all notifications:", error);
+    next(error); // Pass error to global error handler
+  }
+};
 // Export NotificationController
 export const NotificationController = {
   getNotificationsByUserId,
   markNotificationAsSeen,
   deleteNotification,
+  deleteAllNotificationsByUserId
 };
