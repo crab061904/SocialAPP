@@ -8,6 +8,7 @@ const router = express.Router();
 
 // Routes for user management
 router.post("/login", UserController.loginUser);
+router.put('/change-password', authenticateJWT, UserController.changePassword);
 router.get("/", authenticateJWT, UserController.getAllUsers); // Get all users (protected route)
 // router.get("/:email", authenticateJWT, UserController.getUserByEmail); // Get user by email (protected route)
 router.post("/create", UserController.createUser); // Create a new user (open route)
@@ -23,4 +24,5 @@ router.get("/:id/followers", authenticateJWT, UserController.getAllFollowers);
 
 // Get all users that a user is following by their ID
 router.get("/:id/following", authenticateJWT, UserController.getAllFollowing);
+
 export default router;

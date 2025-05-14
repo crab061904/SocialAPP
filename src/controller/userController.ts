@@ -477,4 +477,86 @@ export const UserController = {
       next(error);
     }
   },
+  changePassword: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+      // Validate if all necessary fields are provided
+      if (!oldPassword || !newPassword || !confirmNewPassword) {
+        res.status(400).json({
+          success: false,
+          error: "Old password, new password, and confirm new password are required.",
+        });
+        return;
+      }
+
+      // Validate if new password and confirm new password match
+      if (newPassword !== confirmNewPassword) {
+        res.status(400).json({
+          success: false,
+          error: "New password and confirm new password do not match.",
+        });
+        return;
+      }
+
+      const tokenUserId = (req as Request & { user: any }).user._id;
+
+      // Fetch the user from the database using the token's user ID
+      const user = await UserModel.findById(tokenUserId);
+      if (!user) {
+        res.status(404).json({ success: false, error: "User not found" });
+        return;
+      }
+
+      // Check if oldPassword is valid and not undefined
+      if (typeof oldPassword !== "string") {
+        res.status(400).json({
+          success: false,
+          error: "Old password must be a string and cannot be undefined.",
+        });
+        return;
+      }
+
+      // If user is using Google authentication, password won't be available
+      if (user.googleAuth) {
+        res.status(400).json({
+          success: false,
+          error: "User cannot change password as they are authenticated with Google.",
+        });
+        return;
+      }
+
+      // Ensure user.password is defined before comparing
+      if (typeof user.password !== "string") {
+        res.status(400).json({
+          success: false,
+          error: "User password is not valid.",
+        });
+        return;
+      }
+
+      // Check if the old password provided matches the stored hashed password
+      const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      if (!isOldPasswordValid) {
+        res.status(400).json({
+          success: false,
+          error: "Old password is incorrect.",
+        });
+        return;
+      }
+
+      // Proceed to change the password if the old password is valid
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedNewPassword;
+      await user.save();
+
+      res.status(200).json({ success: true, message: "Password changed successfully." });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

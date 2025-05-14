@@ -58,7 +58,7 @@ const StoriesSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hours from creation
+    default: () => Date.now() + 30* 1000, // 24 hours from creation
   },
   slug: {
     type: String,
