@@ -11,41 +11,42 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // Google callback route
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),  // Redirect on failure
-  async (req: Request, res: Response): Promise<void> => {  // Explicitly typing req and res
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = req.user as any; // Explicitly type req.user as 'any' or IUser
+      const user = req.user as any;
 
       if (!user) {
-        res.status(401).json({ message: 'User not found' });
+        res.status(401).json({ success: false, error: 'User not found' });
         return;
       }
 
-      // Fetch full user data (in case it is not populated in req.user)
       const fullUser = await UserModel.findById(user._id).lean();
 
       if (!fullUser) {
-        res.status(404).json({ message: 'User not found in the database' });
+        res.status(404).json({ success: false, error: 'User not found in the database' });
         return;
       }
 
-      // Generate JWT token for the user
-      const token = generateToken(fullUser._id.toString(), fullUser.role);  // Assuming fullUser._id exists
+      const token = generateToken(fullUser._id.toString(), fullUser.role);
 
-      // Manually assign the token to the session
-      (req.session as any).token = token;  // Explicitly cast session to 'any'
+      (req.session as any).token = token;
 
-      // Output the full user information (including all fields)
-      res.status(200).json({
-        user: fullUser,  // Send the complete user object
-        token: token,    // The JWT token
-      });
+      // Exclude sensitive data like password
+      const { password, ...safeUser } = fullUser;
+
+      // ✅ Send full response like loginUser does
+   const redirectUrl = `http://localhost:5173/_blank?token=${token}&user=${encodeURIComponent(JSON.stringify(safeUser))}`;
+res.redirect(redirectUrl);
+
+
     } catch (error) {
       console.error('Error during Google authentication:', error);
-      res.status(500).json({ message: 'Error during authentication' });
+      res.status(500).json({ success: false, error: 'Error during authentication' });
     }
   }
 );
+
 
 // Profile route to show the logged-in user's profile
 router.get('/profile', (req: Request, res: Response): void => {  // Explicitly typing req and res
