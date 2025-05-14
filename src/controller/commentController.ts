@@ -168,6 +168,9 @@ const deleteComment = async (
       return;
     }
 
+    console.log("COMMENT: ", comment);
+    console.log("USER ID: ", user._id);
+
     // Ensure that user._id is compared correctly (as an ObjectId)
     if (!isAuthorizedToEditOrDelete(user._id, comment)) {
       res
@@ -247,7 +250,14 @@ const getCommentsForReel = async (
 ): Promise<void> => {
   try {
     const { reelId } = req.params;
-    const reel = await ReelModel.findById(reelId).populate("comments");
+    const reel = await ReelModel.findById(reelId).populate({
+      path: "comments",
+      populate: {
+        path: "user",
+        model: "User",
+      },
+    });
+
     if (!reel) {
       res.status(404).json({ success: false, error: "Reel not found" });
       return;
