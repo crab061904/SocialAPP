@@ -1,89 +1,75 @@
-import express, { Request, Response } from 'express';
-import passport from 'passport';
-import { generateToken } from '../utils/jwt';  // Ensure generateToken is correctly imported
-import { UserModel } from '../models/User.model'; // Import the User model to fetch full user data
-import { authenticateJWT } from "../middleware/authMiddleware";
+import express, { Request, Response } from "express";
+import passport from "passport";
+import { generateToken } from "../utils/jwt"; // Ensure generateToken is correctly imported
+import { UserModel } from "../models/User.model"; // Import the User model to fetch full user data
+
 const router = express.Router();
 
 // Google login route
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
 
 // Google callback route
 router.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login?error=google_auth_failed",
+  }),
   async (req: Request, res: Response): Promise<void> => {
-   try {
-      const user = req.user as any;  // Passport provides the user data
+    try {
+      const user = req.user as any;
 
       if (!user) {
-       res.status(401).json({ success: false, error: 'User not found' });
-         return
+        res.redirect("http://localhost:5173/login?error=user_not_found");
+        return;
       }
 
-      // Fetch full user data from the database
       const fullUser = await UserModel.findById(user._id).lean();
-
       if (!fullUser) {
-         res.status(404).json({ success: false, error: 'User not found in the database' });
-         return
+        res.redirect("http://localhost:5173/login?error=user_not_in_db");
+        return;
       }
 
-      // Generate JWT token using the fullUser._id (now properly typed)
       const token = generateToken(fullUser._id.toString(), fullUser.role);
-
-      // Remove the sensitive password field before sending back the user object
       const { password, ...safeUser } = fullUser;
 
-      // Send the response similar to the login route
-      res.status(200).json({
-        success: true,
-        message: "Login successful",
-        token: token,
-        user: safeUser,
-      });
+      // Ensure lastName exists
+      if (!safeUser.lastName) {
+        safeUser.lastName = "";
+      }
+
+      // Encode user data for URL
+      const encodedUser = encodeURIComponent(JSON.stringify(safeUser));
+
+      // Redirect with token and user data in URL
+      res.redirect(
+        `http://localhost:5173/auth/google/callback?token=${token}&user=${encodedUser}`
+      );
     } catch (error) {
-      console.error('Error during Google authentication:', error);
+      console.error("Error during Google authentication:", error);
+      res.redirect("http://localhost:5173/login?error=auth_error");
     }
   }
 );
 
-
 // Profile route to show the logged-in user's profile
-router.get('/profile', authenticateJWT, (req, res) => {
- const user = req.user as any;  // User is attached to the request object by the middleware
-
-  // Return the authenticated user's profile
-  res.status(200).json({ user });
-});
-
-router.get('/protected-data', authenticateJWT, async (req: Request, res: Response): Promise<void> => {
-  const user = req.user as any;  // Or use the extended type here
-  
-  if (!user || !user._id) {
-    res.status(401).json({ message: 'User not authenticated or missing user ID' });
+router.get("/profile", (req: Request, res: Response): void => {
+  // Explicitly typing req and res
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  try {
-    const fullUser = await UserModel.findById(user._id).lean();
+  // Manually access the token from the session
+  const token = (req.session as any).token; // Explicitly cast session to 'any'
 
-    if (!fullUser) {
-      res.status(404).json({ message: 'User not found in the database' });
-      return;
-    }
-
-    const token = generateToken(fullUser._id.toString(), fullUser.role);
-
-    res.status(200).json({
-      message: 'This is protected data',
-      user: fullUser,
-      token: token,
-    });
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Internal server error while fetching user' });
-  }
+  // Send the complete user object along with the token
+  res.status(200).json({
+    user: req.user, // The user object is attached to the session by passport
+    token: token, // Send the token along with the user data
+  });
 });
 
 export default router;
