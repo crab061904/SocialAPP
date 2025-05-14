@@ -32,7 +32,7 @@ const StoriesSchema = new mongoose.Schema({
     },
     background: {
       type: String,
-      default: "bg-gradient-to-tr from-blue-400 to-purple-500", // Default background gradient
+      default: "bg-gradient-to-tr from-blue-400 to-purple-500",
     },
   },
   media: [
@@ -58,7 +58,7 @@ const StoriesSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hours from creation
+    default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hours
   },
   slug: {
     type: String,
@@ -72,5 +72,8 @@ const StoriesSchema = new mongoose.Schema({
   },
 });
 
-// Export the model properly
+// ✅ TTL Index for automatic deletion
+StoriesSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+// Export the model
 export const StoryModel = mongoose.model("Story", StoriesSchema);

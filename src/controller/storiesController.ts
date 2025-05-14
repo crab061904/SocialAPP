@@ -125,7 +125,8 @@ const getAllStories = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const stories = await StoryModel.find().populate("user");
+    const now = new Date();
+    const stories = await StoryModel.find({ expiresAt: { $gt: now } }).populate("user");
 
     res.status(200).json({ success: true, data: stories });
   } catch (error) {
@@ -133,6 +134,7 @@ const getAllStories = async (
     next(error);
   }
 };
+
 
 // Get a story by its ID
 const getStoryById = async (
@@ -142,10 +144,15 @@ const getStoryById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const now = new Date();
 
-    const story = await StoryModel.findById(id).populate("user");
+    const story = await StoryModel.findOne({
+      _id: id,
+      expiresAt: { $gt: now },
+    }).populate("user");
+
     if (!story) {
-      res.status(404).json({ success: false, error: "Story not found" });
+      res.status(404).json({ success: false, error: "Story not found or expired" });
       return;
     }
 
@@ -164,22 +171,25 @@ const getAllStoriesFromUser = async (
 ): Promise<void> => {
   try {
     const { userId } = req.params;
+    const now = new Date();
 
-    const stories = await StoryModel.find({ user: userId }).populate("user");
+    const stories = await StoryModel.find({
+      user: userId,
+      expiresAt: { $gt: now },
+    }).populate("user");
 
     if (!stories.length) {
-      res
-        .status(404)
-        .json({ success: false, error: "No stories found for this user" });
+      res.status(404).json({ success: false, error: "No active stories found for this user" });
       return;
     }
 
     res.status(200).json({ success: true, data: stories });
   } catch (error) {
-    console.error("Error fetching stories from user:", error);
+    console.error("Error fetching user stories:", error);
     next(error);
   }
 };
+
 
 // Delete a story
 const deleteStory = async (

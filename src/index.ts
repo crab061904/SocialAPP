@@ -48,7 +48,9 @@ app.use('/api/reels', reelRoutes);
 app.use('/api/comments', commentRoute);
 app.use('/api/stories', storyRoutes);  
 app.use('/api/notifications',notificationRoutes);
-
+app.get("/api/client-id", (req, res) => {
+  res.json({ CLIENT_ID: process.env.GOOGLE_CLIENT_ID });
+});
 
 // Connect to MongoDB
 const connectDB = async () => {
