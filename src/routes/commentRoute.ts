@@ -23,11 +23,11 @@ router.post(
 router.put("/:commentId", authenticateJWT, CommentController.updateComment);
 
 // Get all comments for a post
-// router.get(
-//   "/post/:postId/comments",
-//   authenticateJWT,
-//   CommentController.getCommentsForPost
-// );
+router.get(
+  "/post/:postId/comments",
+  authenticateJWT,
+  CommentController.getCommentsForPost
+);
 
 // Get all comments for a reel
 router.get(
