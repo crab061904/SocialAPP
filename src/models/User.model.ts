@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 // Define the IUser interface, which extends mongoose.Document
 export interface IUser extends Document {
@@ -25,7 +25,7 @@ export interface IUser extends Document {
 // Define the User Schema
 const UserSchema: Schema<IUser> = new mongoose.Schema({
   firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+  lastName: { type: String, required: false },
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: {
@@ -39,32 +39,40 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
   followers: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: [],
     },
   ],
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: [],
     },
   ],
   role: {
     type: String,
-    enum: ['student', 'professor', 'alumni', 'admin', 'department', 'club', 'event'],
+    enum: [
+      "student",
+      "professor",
+      "alumni",
+      "admin",
+      "department",
+      "club",
+      "event",
+    ],
   },
   department: [
     {
       type: String,
       enum: [
-        'College of Business and Accountancy',
-        'College of Computer Studies',
-        'College of Education',
-        'College of Humanities and Social Sciences',
-        'College of Law',
-        'College of Nursing',
-        'College of Science, Engineering, and Architecture',
+        "College of Business and Accountancy",
+        "College of Computer Studies",
+        "College of Education",
+        "College of Humanities and Social Sciences",
+        "College of Law",
+        "College of Nursing",
+        "College of Science, Engineering, and Architecture",
       ],
     },
   ],
@@ -86,4 +94,4 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
 });
 
 // Export the User model with the IUser type
-export const UserModel = mongoose.model<IUser>('User', UserSchema);
+export const UserModel = mongoose.model<IUser>("User", UserSchema);
